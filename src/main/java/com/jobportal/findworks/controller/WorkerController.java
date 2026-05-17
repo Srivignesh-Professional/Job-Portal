@@ -22,7 +22,7 @@ public class WorkerController {
     private final WorkerProfileService workerProfileService;
     private final LocationService locationService;
 
-    @GetMapping("/dashboard")
+    /*@GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal UserPrincipal principal, Model model) {
         Long userId = principal.getUser().getId();
         WorkerProfile profile = workerProfileService.findByUserId(userId).orElse(null);
@@ -33,6 +33,11 @@ public class WorkerController {
 
         model.addAttribute("profile", profile);
         return "worker/dashboard";
+    }*/
+
+    @GetMapping("/worker/dashboard")
+    public String workerDashboard() {
+        return "redirect:/jobs";
     }
 
 
@@ -67,6 +72,6 @@ public class WorkerController {
         }
 
         workerProfileService.upsertProfile(principal.getUser().getId(), form);
-        return "redirect:/worker/dashboard";
+        return "redirect:/jobs";
     }
 }

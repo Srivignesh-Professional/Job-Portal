@@ -5,27 +5,535 @@
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <title>Employer Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* ────────────────────────────────────────
+           TOKENS
+        ──────────────────────────────────────── */
+        :root {
+            --purple-900: #2D1060;
+            --purple-800: #3D1A80;
+            --purple-600: #6B30D4;
+            --purple-500: #8B4FEC;
+            --purple-400: #A97AF5;
+            --purple-200: #D4BBFA;
+            --purple-100: #EDE5FD;
+            --purple-50:  #F6F2FE;
+            --lavender:   #C8B5F8;
+
+            --ink:   #1A0A3C;
+            --ink-2: #4A3B6B;
+            --ink-3: #7B6A9B;
+            --white: #FFFFFF;
+
+            --success: #27C08A;
+            --danger:  #F05D5D;
+
+            /* Apple system font — SF Pro on Apple devices, falls back gracefully */
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+                    "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+
+            --ease-spring: cubic-bezier(.34,1.56,.64,1);
+            --ease-smooth: cubic-bezier(.4,0,.2,1);
+        }
+
+        /* ────────────────────────────────────────
+           RESET
+        ──────────────────────────────────────── */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: var(--font);
+            background: var(--purple-50);
+            color: var(--ink);
+            min-height: 100dvh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ────────────────────────────────────────
+           BACKGROUND
+        ──────────────────────────────────────── */
+        .bg-canvas {
+            position: fixed; inset: 0; z-index: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 0% 0%,
+                    rgba(109,48,212,.14) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 50% at 100% 100%,
+                    rgba(169,122,245,.1) 0%, transparent 55%),
+                var(--purple-50);
+        }
+        .bg-canvas::after {
+            content: "";
+            position: absolute; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        /* ────────────────────────────────────────
+           PAGE SHELL
+        ──────────────────────────────────────── */
+        .shell {
+            position: relative; z-index: 1;
+            max-width: 680px;
+            margin: 0 auto;
+            padding-bottom: 96px;
+        }
+
+        /* ────────────────────────────────────────
+           TOP NAV
+        ──────────────────────────────────────── */
+        .topnav {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 20px 0;
+        }
+
+        .brand {
+            display: flex; align-items: center; gap: 9px;
+            text-decoration: none;
+        }
+        .brand-mark {
+            width: 34px; height: 34px;
+            background: linear-gradient(140deg, var(--purple-600), var(--purple-400));
+            border-radius: 10px;
+            display: grid; place-items: center;
+            box-shadow: 0 2px 12px rgba(107,48,212,.35);
+        }
+        .brand-mark svg {
+            width: 17px; height: 17px;
+            stroke: white; fill: none;
+            stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+        }
+        .brand-name {
+            font-size: 15px; font-weight: 700;
+            letter-spacing: -.3px; color: var(--ink);
+        }
+        .brand-name span { color: var(--purple-600); }
+
+        .nav-logout-form { display: inline; }
+        .nav-logout {
+            all: unset; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 5px;
+            font-family: var(--font);
+            font-size: 13px; font-weight: 500;
+            color: var(--ink-3);
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(107,48,212,.18);
+            background: rgba(255,255,255,.75);
+            backdrop-filter: blur(10px);
+            transition: background .18s, color .18s, border-color .18s, transform .15s;
+        }
+        .nav-logout:hover {
+            background: rgba(240,93,93,.08);
+            border-color: rgba(240,93,93,.3);
+            color: var(--danger);
+        }
+        .nav-logout:active { transform: scale(.96); }
+
+        /* ────────────────────────────────────────
+           HERO
+        ──────────────────────────────────────── */
+        .hero {
+            padding: 38px 20px 26px;
+            animation: rise .5s var(--ease-smooth) both;
+        }
+        .hero-pill {
+            display: inline-block;
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.3px; text-transform: uppercase;
+            color: var(--purple-600);
+            background: var(--purple-100);
+            border: 1px solid var(--purple-200);
+            border-radius: 20px; padding: 4px 11px;
+            margin-bottom: 15px;
+        }
+        .hero-heading {
+            font-size: clamp(28px, 7.5vw, 40px);
+            font-weight: 700;
+            letter-spacing: -.04em;
+            line-height: 1.06;
+            color: var(--ink);
+            margin-bottom: 10px;
+        }
+        .hero-heading em {
+            font-style: normal;
+            color: var(--purple-600);
+        }
+        .hero-body {
+            font-size: 15px; font-weight: 400;
+            color: var(--ink-3); line-height: 1.55;
+        }
+
+        /* ────────────────────────────────────────
+           ACTION TILES
+        ──────────────────────────────────────── */
+        .tiles {
+            padding: 0 20px 28px;
+            display: flex; flex-direction: column; gap: 10px;
+            animation: rise .55s var(--ease-smooth) .07s both;
+        }
+
+        .tile {
+            display: flex; align-items: center; gap: 14px;
+            padding: 15px 17px;
+            border-radius: 18px;
+            text-decoration: none; cursor: pointer;
+            border: none; font-family: var(--font); width: 100%; text-align: left;
+            transition: transform .22s var(--ease-spring), box-shadow .22s var(--ease-smooth);
+            position: relative; overflow: hidden;
+        }
+        .tile::after {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.16) 55%, transparent 68%);
+            transform: translateX(-120%);
+            transition: transform .6s ease;
+        }
+        .tile:hover::after { transform: translateX(130%); }
+        .tile:hover { transform: translateY(-2px); }
+        .tile:active { transform: scale(.975) !important; box-shadow: none !important; }
+
+        .tile-icon {
+            width: 42px; height: 42px; border-radius: 13px;
+            display: grid; place-items: center;
+            font-size: 19px; flex-shrink: 0;
+        }
+        .tile-copy { flex: 1; min-width: 0; }
+        .tile-title {
+            font-size: 15px; font-weight: 600;
+            letter-spacing: -.2px; color: inherit; margin-bottom: 1px;
+        }
+        .tile-desc { font-size: 12.5px; font-weight: 400; opacity: .65; }
+        .tile-chevron { opacity: .45; font-size: 17px; flex-shrink: 0; }
+
+        /* Post Job — solid purple gradient */
+        .tile-post {
+            background: linear-gradient(125deg, var(--purple-800) 0%, var(--purple-500) 100%);
+            box-shadow: 0 8px 28px rgba(107,48,212,.28), 0 2px 5px rgba(107,48,212,.18);
+            color: white;
+        }
+        .tile-post .tile-icon { background: rgba(255,255,255,.16); }
+        .tile-post .tile-chevron { opacity: .6; }
+        .tile-post:hover {
+            box-shadow: 0 14px 36px rgba(107,48,212,.38); color: white;
+        }
+
+        /* View Jobs — lavender tinted card */
+        .tile-view {
+            background: white;
+            border: 1.5px solid var(--purple-200);
+            box-shadow: 0 2px 12px rgba(107,48,212,.07);
+            color: var(--ink);
+        }
+        .tile-view .tile-icon { background: var(--purple-100); }
+        .tile-view:hover {
+            box-shadow: 0 8px 24px rgba(107,48,212,.13);
+            border-color: var(--purple-400); color: var(--ink);
+        }
+
+        /* Edit Profile — clean white */
+        .tile-edit {
+            background: white;
+            border: 1.5px solid rgba(107,48,212,.14);
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+            color: var(--ink);
+        }
+        .tile-edit .tile-icon {
+            background: var(--purple-50);
+            border: 1px solid var(--purple-100);
+        }
+        .tile-edit:hover {
+            box-shadow: 0 6px 20px rgba(0,0,0,.08); color: var(--ink);
+        }
+
+        /* ────────────────────────────────────────
+           SECTION EYEBROW
+        ──────────────────────────────────────── */
+        .eyebrow {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.4px; text-transform: uppercase;
+            color: var(--ink-3); opacity: .55;
+            padding: 0 20px; margin-bottom: 11px;
+        }
+
+        /* ────────────────────────────────────────
+           COMPANY CARD
+        ──────────────────────────────────────── */
+        .company-card {
+            margin: 0 20px 14px;
+            background: white;
+            border: 1.5px solid var(--purple-200);
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(107,48,212,.07);
+            animation: rise .62s var(--ease-smooth) .14s both;
+        }
+
+        .cc-header {
+            padding: 17px 19px 14px;
+            border-bottom: 1px solid var(--purple-100);
+            display: flex; align-items: center; gap: 13px;
+        }
+        .cc-avatar {
+            width: 46px; height: 46px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--purple-600), var(--purple-400));
+            display: grid; place-items: center;
+            font-size: 20px; flex-shrink: 0;
+            box-shadow: 0 4px 14px rgba(107,48,212,.24);
+        }
+        .cc-name {
+            font-size: 15px; font-weight: 600;
+            letter-spacing: -.2px; color: var(--ink);
+        }
+        .cc-status {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11.5px; font-weight: 500;
+            color: var(--success); margin-top: 3px;
+        }
+        .cc-status::before {
+            content: "";
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--success);
+            box-shadow: 0 0 0 3px rgba(39,192,138,.18);
+        }
+
+        .cc-fields {
+            display: grid; grid-template-columns: 1fr 1fr;
+        }
+        .cc-field {
+            padding: 15px 18px;
+            border-right: 1px solid var(--purple-100);
+            border-bottom: 1px solid var(--purple-100);
+            transition: background .16s;
+        }
+        .cc-field:nth-child(2n) { border-right: none; }
+        .cc-field:nth-last-child(-n+2) { border-bottom: none; }
+        /* If 3rd field is odd (last alone), span full width */
+        .cc-field:last-child:nth-child(odd) {
+            grid-column: 1 / -1;
+            border-right: none;
+        }
+        .cc-field:hover { background: var(--purple-50); }
+        .cc-label {
+            font-size: 10.5px; font-weight: 600;
+            letter-spacing: 1px; text-transform: uppercase;
+            color: var(--purple-400); margin-bottom: 5px;
+        }
+        .cc-value {
+            font-size: 14px; font-weight: 600;
+            color: var(--ink); letter-spacing: -.1px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* ────────────────────────────────────────
+           OVERVIEW BANNER
+        ──────────────────────────────────────── */
+        .overview {
+            margin: 0 20px;
+            border-radius: 22px;
+            background: linear-gradient(130deg,
+                var(--purple-900) 0%,
+                #5520B8 50%,
+                var(--purple-500) 100%);
+            padding: 24px 22px;
+            color: white;
+            position: relative; overflow: hidden;
+            box-shadow: 0 10px 36px rgba(45,16,96,.28);
+            animation: rise .68s var(--ease-smooth) .22s both;
+        }
+        /* decorative rings */
+        .overview::before {
+            content: "";
+            position: absolute;
+            width: 200px; height: 200px; border-radius: 50%;
+            border: 38px solid rgba(255,255,255,.06);
+            right: -52px; bottom: -72px; pointer-events: none;
+        }
+        .overview::after {
+            content: "";
+            position: absolute;
+            width: 110px; height: 110px; border-radius: 50%;
+            border: 26px solid rgba(255,255,255,.05);
+            right: 28px; top: -36px; pointer-events: none;
+        }
+
+        .overview-eyebrow {
+            font-size: 11px; font-weight: 600;
+            letter-spacing: 1.3px; text-transform: uppercase;
+            color: var(--lavender); margin-bottom: 10px;
+        }
+        .overview-heading {
+            font-size: 20px; font-weight: 700;
+            letter-spacing: -.35px; line-height: 1.2; margin-bottom: 9px;
+        }
+        .overview-body {
+            font-size: 13.5px; font-weight: 400;
+            line-height: 1.6; color: rgba(255,255,255,.73);
+            margin-bottom: 20px;
+        }
+        .overview-cta {
+            display: inline-flex; align-items: center; gap: 7px;
+            padding: 10px 18px; border-radius: 20px;
+            background: rgba(255,255,255,.14);
+            border: 1px solid rgba(255,255,255,.24);
+            color: white; text-decoration: none;
+            font-size: 13.5px; font-weight: 600;
+            letter-spacing: -.1px;
+            backdrop-filter: blur(8px);
+            transition: background .2s, transform .2s var(--ease-spring);
+        }
+        .overview-cta:hover {
+            background: rgba(255,255,255,.22); color: white;
+            transform: translateY(-1px);
+        }
+        .overview-cta:active { transform: scale(.97); }
+
+        /* ────────────────────────────────────────
+           KEYFRAMES
+        ──────────────────────────────────────── */
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ────────────────────────────────────────
+           RESPONSIVE — tablet+
+        ──────────────────────────────────────── */
+        @media (min-width: 580px) {
+            .topnav { padding: 24px 28px 0; }
+            .hero { padding: 48px 28px 30px; }
+            .tiles {
+                padding: 0 28px 32px;
+                flex-direction: row; flex-wrap: wrap;
+            }
+            .tile-post { flex: 1 1 100%; }
+            .tile-view, .tile-edit { flex: 1; }
+            .eyebrow { padding: 0 28px; }
+            .company-card { margin: 0 28px 16px; }
+            .cc-fields { grid-template-columns: repeat(3,1fr); }
+            .cc-field:nth-child(2n)   { border-right: 1px solid var(--purple-100); }
+            .cc-field:nth-child(3n)   { border-right: none; }
+            .cc-field:last-child:nth-child(odd) { grid-column: auto; }
+            .overview { margin: 0 28px; }
+        }
+
+        /* ────────────────────────────────────────
+           REDUCED MOTION
+        ──────────────────────────────────────── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="container py-5">
-    <div class="d-flex justify-content-between align-items-center">
-        <h3>Employer Dashboard</h3>
-        <div>
-            <a class="btn btn-outline-secondary" th:href="@{/employer/profile}">Edit Profile</a>
-            <a th:href="@{/employer/jobs}" class="btn btn-success mb-2">Post Job</a>
-            <a class="btn btn-outline-danger" th:href="@{/logout}">Logout</a>
+<body>
+
+<div class="bg-canvas" aria-hidden="true"></div>
+
+<div class="shell">
+
+    <!-- NAV -->
+    <nav class="topnav">
+        <a class="brand" th:href="@{/employer/dashboard}">
+            <div class="brand-mark">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+            </div>
+            <span class="brand-name">Job<span>IsSure</span></span>
+        </a>
+
+        <form th:action="@{/logout}" method="post" class="nav-logout-form">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+            <button class="nav-logout" type="submit">Sign out</button>
+        </form>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-pill">Employer Hub</div>
+        <h1 class="hero-heading">Hire with<br><em>confidence.</em></h1>
+        <p class="hero-body">Post roles, review applicants, and build your team — all from one clean dashboard.</p>
+    </section>
+
+    <!-- QUICK ACTIONS -->
+    <div class="tiles">
+
+        <a class="tile tile-post" th:href="@{/employer/jobs/new}">
+            <div class="tile-icon">＋</div>
+            <div class="tile-copy">
+                <div class="tile-title">Post a New Job</div>
+                <div class="tile-desc">Reach thousands of qualified candidates</div>
+            </div>
+            <span class="tile-chevron">›</span>
+        </a>
+
+        <a class="tile tile-view" th:href="@{/employer/jobs}">
+            <div class="tile-icon">👁</div>
+            <div class="tile-copy">
+                <div class="tile-title">View My Jobs</div>
+                <div class="tile-desc">Manage listings &amp; applicants</div>
+            </div>
+            <span class="tile-chevron">›</span>
+        </a>
+
+        <a class="tile tile-edit" th:href="@{/employer/profile}">
+            <div class="tile-icon">✎</div>
+            <div class="tile-copy">
+                <div class="tile-title">Edit Profile</div>
+                <div class="tile-desc">Update company information</div>
+            </div>
+            <span class="tile-chevron">›</span>
+        </a>
+
+    </div>
+
+    <!-- COMPANY DETAILS -->
+    <p class="eyebrow">Company Profile</p>
+    <div class="company-card">
+        <div class="cc-header">
+            <div class="cc-avatar" aria-hidden="true">🏢</div>
+            <div>
+                <div class="cc-name" th:text="${profile.companyName}">Company Name</div>
+                <div class="cc-status">Active account</div>
+            </div>
+        </div>
+        <div class="cc-fields">
+            <div class="cc-field">
+                <div class="cc-label">Company</div>
+                <div class="cc-value" th:text="${profile.companyName}">Company</div>
+            </div>
+            <div class="cc-field">
+                <div class="cc-label">Contact Person</div>
+                <div class="cc-value" th:text="${profile.contactName != null ? profile.contactName : '-'}">Contact</div>
+            </div>
+            <div class="cc-field">
+                <div class="cc-label">Location</div>
+                <div class="cc-value" th:text="${profile.city != null ? profile.city.name : '-'}">City</div>
+            </div>
         </div>
     </div>
 
-    <div class="card mt-4">
-        <div class="card-body">
-            <div><b>Company:</b> <span th:text="${profile.companyName}"></span></div>
-            <div><b>Contact:</b> <span th:text="${profile.contactName != null ? profile.contactName : '-'}"></span></div>
-            <div><b>City:</b> <span th:text="${profile.city != null ? profile.city.name : '-'}"></span></div>
-        </div>
+    <!-- HIRING OVERVIEW -->
+    <div class="overview">
+        <div class="overview-eyebrow">📊 Hiring Overview</div>
+        <div class="overview-heading">Your recruitment,<br>all in one place.</div>
+        <p class="overview-body">
+            See who has applied, review profiles, and mark candidates as Hired — right from the jobs page.
+        </p>
+        <a class="overview-cta" th:href="@{/employer/jobs}">View My Jobs &nbsp;→</a>
     </div>
 
-    <p class="text-muted mt-3">Phase 3 will add job posting + applicants.</p>
 </div>
+
+<!-- CHAT WIDGET -->
+<div th:replace="layout/chat-widget :: widget"></div>
+
 </body>
 </html>

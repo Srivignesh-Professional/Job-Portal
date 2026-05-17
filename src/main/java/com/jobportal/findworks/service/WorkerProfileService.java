@@ -10,4 +10,6 @@ public interface WorkerProfileService {
     WorkerProfile upsertProfile(Long userId, WorkerProfileForm form);
 
     Optional<WorkerProfile> findByUserId(Long userId);
+
+    boolean profileExists(Long userId);
 }

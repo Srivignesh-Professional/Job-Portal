@@ -7,6 +7,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
+<div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+<div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center">
         <h3>My Applications</h3>
@@ -30,7 +32,14 @@
                         <span th:text="${a.jobPost.category.name}">Category</span>
                     </small>
                 </div>
-                <span class="badge bg-secondary" th:text="${a.status}">APPLIED</span>
+<!--                <span class="badge bg-secondary" th:text="${a.status}">APPLIED</span>-->
+                <span class="badge"
+                      th:classappend="${
+                        a.status.name() == 'HIRED' ? 'bg-success' :
+                        (a.status.name() == 'REJECTED' ? 'bg-danger' : 'bg-secondary')
+                      }"
+                                      th:text="${a.status}">
+                </span>
             </div>
         </div>
     </div>

@@ -2,6 +2,7 @@ package com.jobportal.findworks.security;
 import com.jobportal.findworks.security.auth.PhonePasswordAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,22 +18,15 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
+                //.csrf(csrf -> {})
                 .authenticationProvider(phonePasswordAuthenticationProvider)
-                /*.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/register").permitAll()
-                        .requestMatchers("/worker/**").hasRole("WORKER")
-                        .requestMatchers("/employer/**").hasRole("EMPLOYER")
-                        .anyRequest().authenticated()
-                )*/
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/login", "/register").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/jobs/**").permitAll()
-
+                        .requestMatchers(HttpMethod.GET, "/jobs/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/jobs/*/apply").hasRole("WORKER")
                         .requestMatchers("/worker/**").hasRole("WORKER")
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/jobs/*/apply").hasRole("WORKER")
                         .requestMatchers("/employer/**").hasRole("EMPLOYER")
-
+                        .requestMatchers("/chat/**").authenticated()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

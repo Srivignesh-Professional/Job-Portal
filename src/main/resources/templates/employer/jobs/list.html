@@ -9,6 +9,7 @@
   <div class="d-flex justify-content-between">
     <h3>My Job Posts</h3>
     <a th:href="@{/employer/jobs/create}" class="btn btn-primary">Post New Job</a>
+
   </div>
 
   <div th:each="job : ${jobs}" class="card mb-3">
@@ -17,12 +18,19 @@
       <p>Status: <span class="badge" th:classappend="${job.status == 'PUBLISHED'} ? 'bg-success' : 'bg-secondary'" th:text="${job.status}"></span></p>
       <p>Wage: ₹<span th:text="${job.wageAmount}"></span> <span th:text="${job.wageType}"></span> in <span th:text="${job.city.name}"></span></p>
       <div>
-        <a th:href="@{/employer/jobs/{id}/edit(id=${job.id})}" class="btn btn-sm btn-outline-primary">Edit</a>
+        <a th:href="@{/employer/jobs/{id}/edit(id=${job.id})}"
+           class="btn btn-sm btn-outline-primary">Edit</a>
+        <!--th:if="${job.status == 'PUBLISHED'}"-->
+        <a th:href="@{/employer/jobs/{id}/applications(id=${job.id})}"
+           class="btn btn-sm btn-outline-info">Applicants</a>
+
         <th:block th:if="${job.status != 'CLOSED'}">
           <form th:action="@{/employer/jobs/{id}/publish(id=${job.id})}" method="post" style="display:inline;">
             <button class="btn btn-sm btn-success" th:if="${job.status == 'DRAFT'}" type="submit">Publish</button>
           </form>
-          <form th:action="@{/employer/jobs/{id}/close(id=${job.id})}" method="post" style="display:inline;" th:if="${job.status != 'CLOSED'}">
+
+          <form th:action="@{/employer/jobs/{id}/close(id=${job.id})}" method="post"
+                style="display:inline;" th:if="${job.status != 'CLOSED'}">
             <button class="btn btn-sm btn-danger" type="submit">Close Job</button>
           </form>
         </th:block>

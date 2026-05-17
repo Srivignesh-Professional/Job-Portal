@@ -9,6 +9,8 @@ import com.jobportal.findworks.service.CatalogService;
 import com.jobportal.findworks.service.LocationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -67,5 +69,21 @@ public class JobPostService {
         job.setStatus(JobPost.Status.CLOSED);
         job.setUpdatedAt(LocalDateTime.now());
         jobPostRepository.save(job);
+    }
+
+    public List<JobPost> listPublishedForCities(List<Long> cityIds, Long categoryId) {
+        if (cityIds == null || cityIds.isEmpty()) return List.of();
+        return jobPostRepository.searchPublishedInCities(cityIds, categoryId);
+    }
+
+    public Page<JobPost> listPublishedPage(Long cityId, Long categoryId, Pageable pageable) {
+        return jobPostRepository.searchPublishedPage(cityId, categoryId, pageable);
+    }
+
+    public Page<JobPost> listPublishedForCitiesPage(java.util.List<Long> cityIds, Long categoryId, Pageable pageable) {
+        if (cityIds == null || cityIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+        return jobPostRepository.searchPublishedInCitiesPage(cityIds, categoryId, pageable);
     }
 }
